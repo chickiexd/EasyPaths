@@ -1,5 +1,7 @@
 import os
 
+from .default_paths import DEFAULT_CONFIG
+
 
 class EasyPaths:
     _instance = None
@@ -30,9 +32,24 @@ class EasyPaths:
             if project_dir is not None:
                 EasyPaths._initialized = True
                 project_dir = project_dir.lstrip("/").rstrip("/")
+                self._initialize_default_configs()
                 self._set_project_dir_for_all_users(project_dir)
         else:
             raise ValueError("project_dir must be provided on the first instantiation")
+
+    def _initialize_default_configs(self):
+        """Initializes the EasyPaths with default configurations for users and their paths from default_paths.py."""
+        for user_id, paths in DEFAULT_CONFIG.items():
+            self.add_user(user_id, paths.get("home_dir"))
+
+            # TODO could pop home_dir before the loop
+            # paths.pop('home_dir')
+
+            for path_key, path_value in paths.items():
+                if path_value[0] == "/":
+                    self.add_abs_path(path_key, path_value, user_id)
+                else:
+                    self.add_path(path_key, path_value, False, user_id)
 
     def _set_project_dir_for_all_users(self, project_dir):
         """Sets the project directory for all registered users.
