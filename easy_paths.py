@@ -18,8 +18,13 @@ class EasyPaths:
                 EasyPaths._initialized = True
                 project_dir = project_dir.lstrip("/").rstrip("/")
                 self._set_project_dir_for_all_users(project_dir)
+        else:
+            raise ValueError("project_dir must be provided on the first instantiation")
+
 
     def _set_project_dir_for_all_users(self, project_dir):
+        if os.path.isabs(project_dir):
+            raise ValueError("project_dir must be a relative path.")
         for user_id in self.user_paths:
             project_dir_abs = os.path.join(
                 self.user_paths[user_id]["home_dir"], project_dir
@@ -30,10 +35,19 @@ class EasyPaths:
         return os.path.abspath(path)
 
     def set_current_user(self, user_id):
+        if not EasyPaths._initialized:
+            raise ValueError("EasyPaths is not initialized with a project dir.")
         if user_id in self.user_paths:
             self.current_user = user_id
+            project_dir_path = self.get_path("project_dir")
+            if not os.path.isdir(project_dir_path):
+                raise ValueError(f"Users project directory does not exist.")
+        else:
+            raise ValueError("User does not exist.")
 
     def add_user(self, user_id, home_dir):
+        if not EasyPaths._initialized:
+            raise ValueError("EasyPaths is not initialized with a project dir.")
         if user_id not in self.user_paths:
             self.user_paths[user_id] = {}
             if home_dir is not None:
@@ -50,7 +64,17 @@ class EasyPaths:
             path_value = os.path.normpath(path_value)
             self.user_paths[user_id][path_key] = path_value
 
+        if not EasyPaths._initialized:
+            raise ValueError("EasyPaths is not initialized with a project dir.")
+        if os.path.isabs(path_value):
+                raise ValueError("Path value must not be an absolute path.")
+        if path_value == "":
+            raise ValueError("Path value cannot be empty.")
+        if user_id is not None and not user_id in self.user_paths:
+            raise ValueError("User does not exist. Please add the user first.")
+
         path_value = path_value.rstrip("/")
+
         if user_id is not None:
             _add_path(path_key, path_value, user_id)
         else:
@@ -58,6 +82,17 @@ class EasyPaths:
                 _add_path(path_key, path_value, user_id)
 
     def get_path(self, path_key, user_id=None):
+        if not EasyPaths._initialized:
+            raise ValueError("EasyPaths is not initialized with a project dir.")
         effective_user = user_id or self.current_user
+        if effective_user is None:
+            raise ValueError(
+                "No user set. Please set a user first or provide a user_id."
+            )
+        if not (effective_user in self.user_paths):
+            raise ValueError("User does not exist. Please add the user first.")
+        if not path_key in self.user_paths[effective_user]:
+            raise ValueError("Path key not found for user.")
+
         return self.user_paths[effective_user][path_key]
 
