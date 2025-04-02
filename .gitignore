@@ -1,0 +1,31 @@
+# Neovim files
+*.swp
+*.swo
+*.un~
+*.bak
+# Logs and Temporary files
+*.log
+*.tmp
+*.temp
+# Python specific
+__pycache__/
+*.py[cod]
+*$py.class
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+.env/
+# Environment and config files (Security)
+.env
+.envrc
+.env.*
+*.env
+*.env.*
+# Secret files
+*.pem
+*.key
+*.crt
+*.cert
+
